@@ -16,9 +16,7 @@ drive_download("Censo_SUAS_2019_CREAS_Dados_Gerais_divulgacao.csv",
                       path = "data-raw/Censo_SUAS_2019_CREAS_Dados_Gerais_divulgacao.csv")
 
 # limpando a base geral com oq queremos:
-dados_nao_limpos_geral <- "data-raw/Censo_SUAS_2019_CREAS_Dados_Gerais_divulgacao.csv" |>
-  read.csv(sep = ";")
-
+limpa_base <- function(dados_nao_limpos_geral){
 # funcoes auxiliares para categorizacoes e unificacoes
 # para a variavel de violencia
 muda_q <- function(qs){
@@ -61,7 +59,7 @@ dados_nao_limpos_geral <- dados_nao_limpos_geral |>
     data_creas = q0_15,
     tipo_creas = q1,
     funcionamento_dias = q2_1,
-    functionamento_horas = q2_2,
+    funcionamento_horas = q2_2,
     imovel_comp = q3,
     salas_5_pessoas = muda_salas(q6_1),
     salas_6_14_pessoas = muda_salas(q6_2),
@@ -78,10 +76,22 @@ dados_nao_limpos_geral <- dados_nao_limpos_geral |>
     almoxarifado = q6_9,
     espaco_externo = q6_10,
     # acesso a rampas e estabelecimentos
-    rampas_calcada = q7_1,
-    rotas_espacos = q7_2,
-    rota_banheiro = q7_3,
-    banheiro_adaptado = q7_4,
+    rampas_calcada = recode_factor(q7_1, 
+                                   "Sim, mas não estão de acordo com a Norma da ABNT" = "Sim, mas não ABNT",
+                                   "Sim, de acordo com a Norma da ABNT" = "Sim, ABNT",
+                                   "Não possui" = "Não"),
+    rotas_espacos = recode_factor(q7_2, 
+                                  "Sim, mas não estão de acordo com a Norma da ABNT" = "Sim, mas não ABNT",
+                                  "Sim, de acordo com a Norma da ABNT" = "Sim, ABNT",
+                                  "Não possui" = "Não"),
+    rota_banheiro = recode_factor(q7_3, 
+                                  "Sim, mas não estão de acordo com a Norma da ABNT" = "Sim, mas não ABNT",
+                                  "Sim, de acordo com a Norma da ABNT" = "Sim, ABNT",
+                                  "Não possui" = "Não"),
+    banheiro_adaptado = recode_factor(q7_4, 
+                                      "Sim, mas não estão de acordo com a Norma da ABNT" = "Sim, mas não ABNT",
+                                      "Sim, de acordo com a Norma da ABNT" = "Sim, ABNT",
+                                      "Não possui" = "Não"),
     outras_adaptacoes = q8_0,
     # condensando as questoes dos materiais
     telefone = case_when(q9_1 == "Sim" | q9_2 == "Sim" ~ "Sim",
@@ -122,8 +132,6 @@ dados_nao_limpos_geral <- dados_nao_limpos_geral |>
     violencia_def = muda_q(c_across(q12_12_1:q12_12_4)),
     acolhimento = muda_q(c_across(q12_13_1:q12_13_4)),
     priv_lib = muda_q(c_across(q12_16_1:q12_16_4)),
-    cadastro = q42,
-    coord_creas = q57,
     .keep = "unused"
   ) |>
   select(-c(q12_1_0:q12_17_0))
@@ -140,14 +148,20 @@ dados_nao_limpos_geral <- dados_nao_limpos_geral |>
                                d_58_8bin1_sum == 0 ~ "0",
                                d_58_8bin1_sum == 1 ~ "1",
                                d_58_8bin1_sum > 1 ~ "2"),
-         func_med = case_when(is.na(d_58_8bin1_sum) ~ "Sem info",
+         func_med = case_when(is.na(d_58_8bin2_sum) ~ "Sem info",
                               d_58_8bin2_sum == 0 ~ "0",
                               d_58_8bin2_sum == 1 ~ "1",
                               d_58_8bin2_sum == 2 ~ "2",
                               d_58_8bin2_sum > 2 ~ "3"),
-         func_alto = case_when(is.na(d_58_8bin1_sum) ~ "Sem info",
+         func_alto = case_when(is.na(d_58_8bin3_sum) ~ "Sem info",
                                d_58_8bin3_sum < 3 ~ "1",
-                               d_58_8bin3_sum >= 3 & d_58_8bin3_sum < 6, "2",
-                               TRUE, "3"))
+                               d_58_8bin3_sum >= 3 & d_58_8bin3_sum < 6 ~ "2",
+                               TRUE ~ "3"))
 # salvando esses dados
 dados_nao_limpos_geral |>  write_rds("analise/dados_gerais_CREAS.rds")
+}
+
+dados_nao_limpos_geral <- "data-raw/Censo_SUAS_2019_CREAS_Dados_Gerais_divulgacao.csv" |>
+  read.csv(sep = ";")
+
+limpa_base(dados_nao_limpos_geral)
