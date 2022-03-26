@@ -35,6 +35,9 @@ dados_creas |>
   scale_x_continuous(breaks = scales::pretty_breaks(9)) +
   labs(y = "Densidade",
        x = "Ano de criação")
+ggsave("ano_criacao.pdf",
+         width = 6, height = 4,
+         path = "analise/figuras")
 
 
 # analises univariadas para as horas e estrutura --------------------------
@@ -56,6 +59,10 @@ dados_creas |>
   labs(x = "Tipo de CREAS",
        y = "Proporção") +
   scale_fill_brewer(palette = "Set1", guide = "none")
+ggsave("tipo_creas.pdf",
+       width = 6, height = 4,
+       path = "analise/figuras")
+
 
 dados_creas |>
   pivot_longer(funcionamento_dias:funcionamento_horas, names_to = "funcionamento",
@@ -76,7 +83,10 @@ dados_creas |>
   labs(x = "Horas",
        y = "Proporção") +
   facet_wrap(~funcionamento, scale = "free_x")
-  
+ggsave("func_dias_horas.pdf",
+       width = 8, height = 6,
+       path = "analise/figuras")
+
 
 # estrutura
 # imovel compartilhado
@@ -97,6 +107,10 @@ dados_creas |>
   labs(x = "Imóvel compartilhado",
          y = "Proporção") +
   scale_fill_brewer(palette = "Set1", guide = "none")
+ggsave("imovel_comp.pdf",
+       width = 6, height = 4,
+       path = "analise/figuras")
+
 
 # numero de banheiros, salas, etc
 dados_creas |>
@@ -116,11 +130,14 @@ dados_creas |>
   theme_bw() +
   theme(text = element_text(family = "serif", size = 14),
         plot.title = element_text(hjust = 0.5)) +
-  theme(axis.text.x = element_text(angle = 90)) +
   labs(x = "Categoria",
        y = "Proporção") +
   scale_fill_brewer(palette = "Set1", guide = "none") +
   facet_wrap(~salas, scale = "free_x")
+ggsave("salas_banheiros_qtd.pdf",
+       width = 10, height = 8,
+       path = "analise/figuras")
+
 
 # se tem recepcao, cozinha, espaço externo
 dados_creas |>
@@ -140,12 +157,13 @@ dados_creas |>
   theme_bw() +
   theme(text = element_text(family = "serif", size = 14),
         plot.title = element_text(hjust = 0.5)) +
-  theme(axis.text.x = element_text(angle = 90)) +
   labs(x = "Categoria",
        y = "Proporção") +
   scale_fill_brewer(palette = "Set1", guide = "none")  +
   facet_wrap(~espacos, scale = "free_x")
-
+ggsave("espacos_presenca.pdf",
+       width = 10, height = 8,
+       path = "analise/figuras")
 
 # rampas e adaptacoes
 dados_creas |>
@@ -165,12 +183,13 @@ dados_creas |>
   theme_bw() +
   theme(text = element_text(family = "serif", size = 14),
         plot.title = element_text(hjust = 0.5)) +
-  theme(axis.text.x = element_text(angle = 90)) +
   labs(x = "Presença",
        y = "Proporção") +
   scale_fill_brewer(palette = "Set1", guide = "none") +
   facet_wrap(~adaptacoes, scale = "free_x")
-
+ggsave("adaptacoes_categorias.pdf",
+       width = 10, height = 8,
+       path = "analise/figuras")
 
 # equipamentos
 dados_creas |>
@@ -190,11 +209,13 @@ dados_creas |>
   theme_bw() +
   theme(text = element_text(family = "serif", size = 14),
         plot.title = element_text(hjust = 0.5)) +
-  theme(axis.text.x = element_text(angle = 90)) +
   labs(x = "Presença de equipamentos",
        y = "Proporção") +
   scale_fill_brewer(palette = "Set1", guide = "none") +
   facet_wrap(~materiais, scale = "free_x")
+ggsave("equip_categorias.pdf",
+       width = 10, height = 8,
+       path = "analise/figuras")
   
 # quantidade de computadores com internet
 dados_creas |>
@@ -215,7 +236,9 @@ dados_creas |>
   labs(x = "Categorias de acesso a internet",
        y = "Proporção") +
   scale_fill_brewer(palette = "Set1", guide = "none")
-
+ggsave("qtd_comp_int.pdf",
+       width = 6, height = 4,
+       path = "analise/figuras")
 
 # servicos
 dados_creas |>
@@ -235,12 +258,13 @@ dados_creas |>
   theme_bw() +
   theme(text = element_text(family = "serif", size = 14),
         plot.title = element_text(hjust = 0.5)) +
-  theme(axis.text.x = element_text(angle = 90)) +
   labs(x = "Número de categorias atendidas",
        y = "Proporção") +
   scale_fill_brewer(palette = "Set1", guide = "none") +
   facet_wrap(~servicos, scale = "free_x")
-
+ggsave("servicos_categorias.pdf",
+       width = 11, height = 8,
+       path = "analise/figuras")
 
 # perfil dos funcionarios em geral
 dados_creas |>
@@ -260,12 +284,43 @@ dados_creas |>
   theme_bw() +
   theme(text = element_text(family = "serif", size = 14),
         plot.title = element_text(hjust = 0.5)) +
-  theme(axis.text.x = element_text(angle = 90)) +
   labs(x = "Faixas de números de funcionários",
        y = "Proporção") +
   scale_fill_brewer(palette = "Set1", guide = "none") +
   facet_wrap(~func, scale = "free_x")
+ggsave("func_categorias.pdf",
+       width = 8, height = 6,
+       path = "analise/figuras")
+
+# transforma em 0 e 1
+bin_func <- function(var){
+  case_when(var == "0" ~ 0,
+            TRUE ~ 1)
+}
 
 
-
+# analisando a quantidade de serviços oferecidos
+dados_creas |>
+  mutate(across(violencia_fisica:priv_lib, bin_func)) |>
+  rowwise() |>
+  mutate(quantidade_servicos = sum(c_across(violencia_fisica:priv_lib))) |>
+  count(quantidade_servicos) |>
+  ungroup() |>
+  mutate(p = n/sum(n)) |>
+  ggplot(aes(x = quantidade_servicos, y = p, 
+             label = scales::percent(p, accuracy = 0.1, decimal.mark = ","))) +
+  geom_col(fill = "dodgerblue3", alpha = 0.65) +
+  scale_y_continuous(breaks = scales::pretty_breaks(9)) +
+  scale_x_continuous(breaks = scales::pretty_breaks(10)) +
+  geom_text(position = position_dodge(width = .9),
+            vjust = -0.5,
+            size = 3.2) +
+  theme_bw() +
+  theme(text = element_text(family = "serif", size = 14),
+        plot.title = element_text(hjust = 0.5)) +
+  labs(x = "Número de serviços oferecidos",
+       y = "Proporção")
+ggsave("num_servicos.pdf",
+       width = 6, height = 4,
+       path = "analise/figuras")
 

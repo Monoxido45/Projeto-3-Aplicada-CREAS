@@ -40,8 +40,6 @@ dados_nao_limpos_geral <- dados_nao_limpos_geral |>
   select(c(IBGE:Q_completo), 
          q0_15,
          q1,
-         Latitude,
-         Longitude,
          q2_1,
          q2_2,
          q3,
@@ -77,21 +75,21 @@ dados_nao_limpos_geral <- dados_nao_limpos_geral |>
     espaco_externo = q6_10,
     # acesso a rampas e estabelecimentos
     rampas_calcada = recode_factor(q7_1, 
-                                   "Sim, mas não estão de acordo com a Norma da ABNT" = "Sim, mas não ABNT",
-                                   "Sim, de acordo com a Norma da ABNT" = "Sim, ABNT",
-                                   "Não possui" = "Não"),
+                                   "Sim, mas não estão de acordo com a Norma da ABNT" = "2",
+                                   "Sim, de acordo com a Norma da ABNT" = "1",
+                                   "Não possui" = "0"),
     rotas_espacos = recode_factor(q7_2, 
-                                  "Sim, mas não estão de acordo com a Norma da ABNT" = "Sim, mas não ABNT",
-                                  "Sim, de acordo com a Norma da ABNT" = "Sim, ABNT",
-                                  "Não possui" = "Não"),
+                                  "Sim, mas não estão de acordo com a Norma da ABNT" = "2",
+                                  "Sim, de acordo com a Norma da ABNT" = "1",
+                                  "Não possui" = "0"),
     rota_banheiro = recode_factor(q7_3, 
-                                  "Sim, mas não estão de acordo com a Norma da ABNT" = "Sim, mas não ABNT",
-                                  "Sim, de acordo com a Norma da ABNT" = "Sim, ABNT",
-                                  "Não possui" = "Não"),
+                                  "Sim, mas não estão de acordo com a Norma da ABNT" = "2",
+                                  "Sim, de acordo com a Norma da ABNT" = "1",
+                                  "Não possui" = "0"),
     banheiro_adaptado = recode_factor(q7_4, 
-                                      "Sim, mas não estão de acordo com a Norma da ABNT" = "Sim, mas não ABNT",
-                                      "Sim, de acordo com a Norma da ABNT" = "Sim, ABNT",
-                                      "Não possui" = "Não"),
+                                      "Sim, mas não estão de acordo com a Norma da ABNT" = "2",
+                                      "Sim, de acordo com a Norma da ABNT" = "1",
+                                      "Não possui" = "0"),
     outras_adaptacoes = q8_0,
     # condensando as questoes dos materiais
     telefone = case_when(q9_1 == "Sim" | q9_2 == "Sim" ~ "Sim",
@@ -115,8 +113,7 @@ dados_nao_limpos_geral <- dados_nao_limpos_geral |>
     comp_qtd = case_when(q10_1 == 0 | q10_2 == 0 ~ "1",
                          q10_2 > 0 & q10_2 <= 5 ~ "2",
                          q10_2 > 5 & q10_2 <= 10 ~ "3",
-                         q10_2 > 10 & q10_2 <= 15 ~ "4",
-                         q10_2 > 15 ~ "5"),
+                         q10_2 > 10  ~ "4"),
     # numero indicando quantas faixas atende
     violencia_fisica = muda_q(c_across(q12_1_1:q12_1_4)),
     violencia_psico = muda_q(c_across(q12_2_1:q12_2_4)),
@@ -141,7 +138,8 @@ dados_rh <- "data-raw/Censo_SUAS_2019_RH_CREAS_divulgação.xlsx" |>
   readxl::read_xlsx()
 
 dados_nao_limpos_geral <- dados_nao_limpos_geral |>
-  left_join(dados_rh |> select(NU_IDENTIFICADOR, d_58_8bin1_sum:d_58_8bin3_sum) |>
+  left_join(dados_rh |> select(NU_IDENTIFICADOR, d_58_8bin1_sum:d_58_8bin3_sum,
+                               Porte_pop2010) |>
               distinct(NU_IDENTIFICADOR, .keep_all = TRUE),
             by = "NU_IDENTIFICADOR") |>
   mutate(func_fund = case_when(is.na(d_58_8bin1_sum) ~ "Sem info",
@@ -158,7 +156,12 @@ dados_nao_limpos_geral <- dados_nao_limpos_geral |>
                                d_58_8bin3_sum >= 3 & d_58_8bin3_sum < 6 ~ "2",
                                TRUE ~ "3"))
 # salvando esses dados
-dados_nao_limpos_geral |>  write_rds("analise/dados_gerais_CREAS.rds")
+dados_nao_limpos_geral |> 
+  mutate(Porte_pop2010 = case_when(is.na(Porte_pop2010.y) ~ Porte_pop2010.x,
+                                    Porte_pop2010.x == "" ~ Porte_pop2010.y,
+                                    TRUE ~ Porte_pop2010.x),
+         .keep = "unused") |>
+write_rds("analise/dados_gerais_CREAS.rds")
 }
 
 dados_nao_limpos_geral <- "data-raw/Censo_SUAS_2019_CREAS_Dados_Gerais_divulgacao.csv" |>
