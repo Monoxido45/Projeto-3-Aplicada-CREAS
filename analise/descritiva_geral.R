@@ -12,6 +12,7 @@ dados_creas |> count(Regiao)
 
 # por UF
 dados_creas |> count(UF)
+# usando o mapa para colorir por UF
 
 # do sudeste
 dados_creas |> filter(Regiao == "Região Sudeste") |> count(UF)
@@ -39,6 +40,29 @@ ggsave("ano_criacao.pdf",
          width = 6, height = 4,
          path = "analise/figuras")
 
+dados_creas |> mutate(ano = data_creas |> lubridate::dmy() |>
+                        lubridate::year(),
+                      ano = case_when(ano < 2010 ~ "<2010",
+                                      ano >= 2010 ~ ">=2010"))|>
+  count(ano) |>
+  ungroup() |>
+  mutate(p = n/sum(n)) |>
+  ggplot(aes(x = ano, y = p, fill = ano, 
+             label = scales::percent(p, accuracy = 0.1, decimal.mark = ",")))+
+  geom_col()+
+  scale_y_continuous(breaks = scales::pretty_breaks(10)) +
+  geom_text(position = position_dodge(width = .9),
+            vjust = -0.5,
+            size = 3.2) +
+  theme_minimal() +
+  theme(text = element_text(family = "serif", size = 14),
+        plot.title = element_text(hjust = 0.5)) +
+  labs(x = "Ano de criação",
+       y = "Proporção") +
+  scale_fill_brewer(palette = "Set1", guide = "none")
+ggsave("ano_cat.pdf",
+       width = 6, height = 4,
+       path = "analise/figuras")
 
 # analises univariadas para as horas e estrutura --------------------------
 # tipo de creas
