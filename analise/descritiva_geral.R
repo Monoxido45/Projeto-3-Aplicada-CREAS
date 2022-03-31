@@ -328,6 +328,7 @@ dados_creas |>
   mutate(across(violencia_fisica:priv_lib, bin_func)) |>
   rowwise() |>
   mutate(quantidade_servicos = sum(c_across(violencia_fisica:priv_lib))) |>
+  pull(quantidade_servicos)
   count(quantidade_servicos) |>
   ungroup() |>
   mutate(p = n/sum(n)) |>
