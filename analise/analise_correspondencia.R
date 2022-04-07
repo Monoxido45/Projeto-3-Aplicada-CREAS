@@ -176,6 +176,8 @@ ggpubr::ggarrange(p1, p2, p3, nrow = 2, ncol = 2)
 # planos fatoriais separados
 fviz_mca_var(res_mca, 
              select.var = list(cos2 = 25),
+             col.var = "cos2",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
              repel = TRUE,
              ggtheme = theme_bw()) +
   labs(title = "Primeiro plano fatorial") +
@@ -183,29 +185,33 @@ fviz_mca_var(res_mca,
                             family ="serif"),
         plot.title = element_text(hjust = 0.5))
 ggsave("prim_plano.pdf",
-       width = 8, height = 6,
+       width = 10, height = 6,
        path = "analise/figuras")
 
 fviz_mca_var(res_mca, 
                    select.var = list(cos2 = 25),
+             col.var = "cos2",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
                    axes = c(1, 3),
                    repel = TRUE,
                    ggtheme = theme_bw()) +
   labs(title = "Segundo plano fatorial") +
   tema_mca
 ggsave("segundo_plano.pdf",
-       width = 8, height = 6,
+       width = 10, height = 6,
        path = "analise/figuras")
 
 fviz_mca_var(res_mca, 
                    select.var = list(cos2 = 25),
+             col.var = "cos2",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
                    axes = c(2, 3),
                    repel = TRUE,
                    ggtheme = theme_bw()) +
   labs(title = "Terceiro plano fatorial") +
   tema_mca
 ggsave("terceiro_plano.pdf",
-       width = 8, height = 6,
+       width = 10, height = 6,
        path = "analise/figuras")
 
 # analisando cada creas individualmente
@@ -245,9 +251,9 @@ ggsave("ind_primeiro_segundo_plano.pdf",
 col <- RColorBrewer::brewer.pal(5, "Set2")
 # apenas o primeiro plano
 # obtendo o indice de cada
-indice_regiao <- dados_mca |>
+indice_regiao <- dados_creas |>
   rowid_to_column() |>
-  select(rowid, Regiao)
+  select(rowid, Regiao, Porte_pop2010)
 
 
 p1 <- fviz_mca_ind(res_mca,
@@ -323,4 +329,89 @@ ggpubr::ggarrange(p1, p2, p3, p4, p5, nrow = 3, ncol = 2)
 ggsave("primeiro_plano_regioes.pdf",
        width = 12, height = 6,
        path = "analise/figuras")
+
+
+# analisando pela regiao de forma separada para nao ficar muito poluido
+# dividindo pelo porte
+
+
+p1 <- fviz_mca_ind(res_mca,
+                   col.ind = col[1],
+                   pointsize = 1,
+                   select.ind = list(name = indice_regiao |> 
+                                       filter(Porte_pop2010 == "Pequeno II") |>
+                                       pull(rowid) |> as.character()),
+                   label = "none",
+                   axes = c(1, 2),
+                   ggtheme = theme_minimal())+
+  labs(title = "Porte Pequeno II") +
+  theme(text = element_text(size = 9, 
+                            family ="serif"),
+        plot.title = element_text(hjust = 0.5))
+
+
+p2 <- fviz_mca_ind(res_mca,
+                   col.ind = col[2],
+                   pointsize = 1,
+                   select.ind = list(name = indice_regiao |> 
+                                       filter(Porte_pop2010 == "Pequeno I") |>
+                                       pull(rowid) |> as.character()),
+                   label = "none",
+                   axes = c(1, 2),
+                   ggtheme = theme_minimal())+
+  labs(title = "Porte Pequeno I") +
+  theme(text = element_text(size = 9, 
+                            family ="serif"),
+        plot.title = element_text(hjust = 0.5))
+
+p3 <- fviz_mca_ind(res_mca,
+                   col.ind = col[3],
+                   pointsize = 1,
+                   select.ind = list(name = indice_regiao |> 
+                                       filter(Porte_pop2010 == "Médio") |>
+                                       pull(rowid) |> as.character()),
+                   label = "none",
+                   axes = c(1, 2),
+                   ggtheme = theme_minimal())+
+  labs(title = "Porte Médio") +
+  theme(text = element_text(size = 9, 
+                            family ="serif"),
+        plot.title = element_text(hjust = 0.5))
+
+
+p4 <- fviz_mca_ind(res_mca,
+                   col.ind = col[4],
+                   pointsize = 1,
+                   select.ind = list(name = indice_regiao |> 
+                                       filter(Porte_pop2010== "Grande") |>
+                                       pull(rowid) |> as.character()),
+                   label = "none",
+                   axes = c(1, 2),
+                   ggtheme = theme_minimal())+
+  labs(title = "Porte Grande") +
+  theme(text = element_text(size = 9, 
+                            family ="serif"),
+        plot.title = element_text(hjust = 0.5))
+
+
+p5 <- fviz_mca_ind(res_mca,
+                   col.ind = col[5],
+                   pointsize = 1,
+                   select.ind = list(name = indice_regiao |> 
+                                       filter(Porte_pop2010 == "Metrópole") |>
+                                       pull(rowid) |> as.character()),
+                   label = "none",
+                   axes = c(1, 2),
+                   ggtheme = theme_minimal())+
+  labs(title = "Porte Metrópole") +
+  theme(text = element_text(size = 9, 
+                            family ="serif"),
+        plot.title = element_text(hjust = 0.5))
+
+
+ggpubr::ggarrange(p1, p2, p3, p4, p5, nrow = 3, ncol = 2)
+ggsave("primeiro_plano_portes.pdf",
+       width = 12, height = 6,
+       path = "analise/figuras")
+
 

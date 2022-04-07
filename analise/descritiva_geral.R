@@ -64,6 +64,30 @@ ggsave("ano_cat.pdf",
        width = 6, height = 4,
        path = "analise/figuras")
 
+# porte de munícipio
+dados_creas |> 
+  mutate(Porte_pop2010 = ifelse(Porte_pop2010 == "", "Indefinido", Porte_pop2010)) |>
+  count(Porte_pop2010) |>
+  ungroup() |>
+  mutate(p = n/sum(n)) |>
+  ggplot(aes(x = Porte_pop2010, y = p, fill = Porte_pop2010, 
+             label = scales::percent(p, accuracy = 0.1, decimal.mark = ",")))+
+  geom_col()+
+  scale_y_continuous(breaks = scales::pretty_breaks(10)) +
+  geom_text(position = position_dodge(width = .9),
+            vjust = -0.5,
+            size = 3.2) +
+  theme_minimal() +
+  theme(text = element_text(family = "serif", size = 14),
+        plot.title = element_text(hjust = 0.5)) +
+  labs(x = "Porte de população",
+       y = "Proporção") +
+  scale_fill_brewer(palette = "Set1", guide = "none")
+ggsave("porte_pop.pdf",
+       width = 10, height = 6,
+       path = "analise/figuras")
+
+
 # analises univariadas para as horas e estrutura --------------------------
 # tipo de creas
   dados_creas |>
@@ -275,7 +299,7 @@ dados_creas |>
              label = scales::percent(p, accuracy = 0.1, decimal.mark = ","), 
              fill = numero)) +
   geom_col() +
-  scale_y_continuous(breaks = scales::pretty_breaks(6)) +
+  scale_y_continuous(breaks = scales::pretty_breaks(6), limits = c(0, 1)) +
   geom_text(position = position_dodge(width = .9),
             vjust = -0.5,
             size = 3.2) +
@@ -290,6 +314,33 @@ ggsave("servicos_categorias.pdf",
        width = 11, height = 8,
        path = "analise/figuras")
 
+dados_creas |> filter(violencia_fisica == "0" | violencia_psico == "0" | violencia_sexual == "0") |> 
+  pivot_longer(violencia_fisica:priv_lib, names_to = "servicos",
+               values_to = "numero") |>
+  group_by(NU_IDENTIFICADOR) |>
+  mutate(bool = as.numeric(numero != "0")) |>
+  summarise(servicos = sum(bool))
+
+
+# vendo quantida de creas sem serviços oferecidos
+identif <- dados_creas |> pivot_longer(violencia_fisica:med_soc_ad_eg, names_to = "servicos",
+              values_to = "numero") |>
+group_by(NU_IDENTIFICADOR) |>
+ mutate(bool = as.numeric(numero != "0")) |>
+summarise(servicos = sum(bool)) |>
+filter(servicos == 0) |>
+pull(NU_IDENTIFICADOR)
+
+
+
+a <- dados_creas |> filter(NU_IDENTIFICADOR %in% identif)
+
+
+  mutate(ano = data_creas |> lubridate::dmy() |>
+          lubridate::year()) |>
+  count(ano)
+
+
 # perfil dos funcionarios em geral
 dados_creas |>
   pivot_longer(func_fund:func_alto, names_to = "func",
@@ -301,7 +352,7 @@ dados_creas |>
              label = scales::percent(p, accuracy = 0.1, decimal.mark = ","), 
              fill = numero)) +
   geom_col() +
-  scale_y_continuous(breaks = scales::pretty_breaks(6)) +
+  scale_y_continuous(breaks = scales::pretty_breaks(6), limits = c(0, 1)) +
   geom_text(position = position_dodge(width = .9),
             vjust = -0.5,
             size = 3.2) +

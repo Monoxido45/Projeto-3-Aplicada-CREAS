@@ -129,6 +129,9 @@ dados_nao_limpos_geral <- dados_nao_limpos_geral |>
     violencia_def = muda_q(c_across(q12_12_1:q12_12_4)),
     acolhimento = muda_q(c_across(q12_13_1:q12_13_4)),
     priv_lib = muda_q(c_across(q12_16_1:q12_16_4)),
+    eg_sist_pr = muda_q(c_across(q12_17_1:q12_17_4)),
+    med_soc_ad = muda_q(c_across(q12_14_1:q12_14_4)),
+    med_soc_ad_eg = muda_q(c_across(q12_15_1:q12_15_4)),
     .keep = "unused"
   ) |>
   select(-c(q12_1_0:q12_17_0))
